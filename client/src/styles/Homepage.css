@@ -176,13 +176,13 @@
     align-items: center;
   }
 
-.carousel-slide {
+/* .carousel-slide {
   width: 100%;
   aspect-ratio: 1850 / 805; 
   overflow: hidden;
   border-radius: 12px;
   background-color: #f9f9f9;
-}
+} */
 
 
 
