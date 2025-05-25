@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400&family=Lora:wght@400;700&family=Montserrat:wght@300;400;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Font styles */
+/* font-family: 'Poppins', sans-serif; */
+/* font-family: 'Playfair Display', serif; */
+/* font-family: 'Lora', serif; */
+/* font-family: 'Montserrat', sans-serif; */
+
+/* Navbar */
+.navbar {
+  font-family: "Montserrat", sans-serif;
+  font-size: 17px;
+  line-height: 26px;
+  text-transform: uppercase;
+  box-shadow: 0 8px 6px -6px gray;
+  border-bottom: solid gray !important;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-family: "Playfair Display", serif;
+  letter-spacing: 3px;
+}
+
+.nav-link {
+  font-weight: 400 !important;
+}
+
+.active {
+  border-bottom: 2px solid black;
+}
+
+/* Footer */
+.footer {
+  font-family: "Lora", serif;
+  color: white;
+  padding: 25px;
+  background: linear-gradient(to right, #434343, #000000);
+}
+
+.footer a {
+  text-decoration: none;
+  color: white;
+  padding: 10px;
+  font-weight: 700;
+}
+
+.footer a:hover {
+  color: #ffefba;
+  border-bottom: 1px solid #ffefba;
+}
+
+/* Page Not Found */
+.pnf-title {
+  font-size: 100px;
+  font-weight: 700;
+  font-family: "Playfair Display", serif;
+}
+
+.pnf-heading {
+  font-weight: normal;
+  font-family: "Lora", serif;
+}
+
+/* Contact Us */
+.contactus {
+  font-family: "Montserrat", sans-serif;
+  font-size: 20px;
+}
+
+/* Dashboard */
+.dashboard-menu h4 {
+  background-color: #434343 !important;
+  color: white;
+  padding: 20px 0px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+}

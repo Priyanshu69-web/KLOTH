@@ -1,0 +1,29 @@
+.brand-name {
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: 0.3s ease-in-out;
+      display: inline-block;
+  }
+
+  .brand-name span {
+      color: #5db9ee;
+      font-size: 2rem;
+  }
+
+.navbar .nav-link {
+  font-weight: 500;
+  color: #333;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: #0d6efd;
+  transition: 0.3s;
+}
+
+input:focus,
+button:focus {
+  box-shadow: none !important;
+}

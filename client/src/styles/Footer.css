@@ -1,0 +1,12 @@
+.footer a:hover {
+  color: #ffc107;
+  text-decoration: underline;
+}
+
+.footer ul {
+  padding-left: 0;
+}
+
+.footer h5 {
+  font-weight: 600;
+}
