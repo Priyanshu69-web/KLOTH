@@ -12,7 +12,7 @@ import "../styles/Homepage.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const HomePage = () => {
+const HomePage = ({searchQuery}) => {
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
   const [products, setProducts] = useState([]);
