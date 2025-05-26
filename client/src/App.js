@@ -25,7 +25,7 @@ import Users from "./pages/Admin/Users";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import Product from "./pages/Admin/Products";
 import UpdateProduct from "./pages/Admin/UpdateProduct";
-import Header from "./commponets/Layout/Header"; // Ensure correct path
+import Header from "./commponets/Layouts/Header"; // Ensure correct path
 
 function App() {
   const [searchQuery, setSearchQuery] = useState("");
