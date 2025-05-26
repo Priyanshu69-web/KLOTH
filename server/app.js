@@ -17,8 +17,17 @@ dotenv.config({path:'./config.env'});
 app.use(morgan("dev"));
 
 // Enable CORS for frontend origin
+const allowedOrigins = ["https://kloth-frontend.onrender.com"];
+
 const corsOptions = {
-  origin: "https://kloth.onrender.com", // frontend URL
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true); // allow non-browser requests like curl or postman
+    if(allowedOrigins.indexOf(origin) !== -1){
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));

@@ -10,7 +10,7 @@ const AuthProvider = ({ children }) => {
     });
 
     // Set axios base URL for backend API
-    axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || "https://kloth.onrender.com";
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || "https://kloth.onrender.com";
 
     //Default axios
     axios.defaults.headers.common['Authorization'] = auth?.token;
