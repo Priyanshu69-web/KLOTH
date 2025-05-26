@@ -3,6 +3,7 @@ import colors from "colors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRouter.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
@@ -14,6 +15,13 @@ dotenv.config({path:'./config.env'});
 
 // Use morgan for logging
 app.use(morgan("dev"));
+
+// Enable CORS for frontend origin
+const corsOptions = {
+  origin: "https://kloth.onrender.com", // frontend URL
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 
 // Connect to database
 connectDB();
@@ -37,7 +45,7 @@ app.get("/", (req, res) => {
 });
 
 //PORT
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 4000
 
 //run listen
 app.listen(PORT, () => {
