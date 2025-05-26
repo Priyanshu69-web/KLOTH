@@ -8,6 +8,8 @@ import moment from "moment";
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [auth] = useAuth();
+    const API_URL = "https://kloth.onrender.com";
+
 
   const getOrders = async () => {
     try {
@@ -67,7 +69,7 @@ const Orders = () => {
                             <div className="row g-0 h-100">
                               <div className="col-md-4 d-flex align-items-center">
                                 <img
-                                  src={`/api/v1/product/product-image/${product._id}`}
+                                  src={`${API_URL}/api/v1/product/product-image/${product._id}`}
                                   className="img-fluid rounded-start"
                                   alt={product.name}
                                 />

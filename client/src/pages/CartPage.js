@@ -17,6 +17,7 @@ const CartPage = () => {
   const [instance, setInstance] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+    const API_URL = "https://kloth.onrender.com";
 
   //total price
   const totalPrice = () => {
@@ -105,7 +106,7 @@ const CartPage = () => {
                   <div className="col-md-4">
                     <img
                     
-                      src={`/api/v1/product/product-image/${p._id}`}
+                      src={`${API_URL}/api/v1/product/product-image/${p._id}`}
                       className="card-img-top"
                       alt={p.name}
                       width="100%"

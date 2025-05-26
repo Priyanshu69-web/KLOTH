@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 const Products = () => {
   const [products, setProducts] = useState([]);
+    const API_URL = "https://kloth.onrender.com";
 
   //getall products
   const getAllProducts = async () => {
@@ -39,7 +40,7 @@ const Products = () => {
               >
                 <div className="card m-2" style={{ width: "18rem" }}>
                   <img
-                    src={`/api/v1/product/product-image/${p._id}`}
+                    src={`${API_URL}/api/v1/product/product-image/${p._id}`}
                     className="card-img-top"
                     alt={p.name}
                     style={{ width: "100%", height:"200px" }}/>

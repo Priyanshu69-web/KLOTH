@@ -20,6 +20,7 @@ const UpdateProduct = () => {
   const [shipping, setShipping] = useState("");
   const [image, setimage] = useState("");
   const [id, setId] = useState("");
+    const API_URL = "https://kloth.onrender.com";
 
   //get single product
   const getSingleProduct = async () => {
@@ -155,7 +156,7 @@ const UpdateProduct = () => {
                 ) : (
                   <div className="text-center">
                     <img
-                      src={`/api/v1/product/product-image/${id}`}
+                      src={`${API_URL}/api/v1/product/product-image/${id}`}
                       alt="product_image"
                       height={"200px"}
                       className="img img-responsive"
