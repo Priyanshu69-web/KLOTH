@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import ProductDetailPage from "./pages/ProductDetailPage"; // Import the new ProductDetailPage
+import { useState } from "react";
+import ProductDetailPage from "./pages/ProductDetailPage";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -24,52 +25,49 @@ import Users from "./pages/Admin/Users";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import Product from "./pages/Admin/Products";
 import UpdateProduct from "./pages/Admin/UpdateProduct";
-
-
+import Header from "./commponets/Layout/Header"; // Ensure correct path
 
 function App() {
-  
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
+    <>
+      {/* Move Header outside of Routes */}
+      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-    
-    <Routes>
-       <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home searchQuery={searchQuery} />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/product/:slug" element={<ProductDetailPage />} />
 
+        {/* Auth Routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot" element={<Forgotpassword />} />
 
-      {/* Public Routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/" element={<Home searchQuery={searchQuery} />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/cart" element={<CartPage />} />
-      <Route path="/product/:slug" element={<ProductDetailPage />} /> 
+        {/* Protected Routes for Users */}
+        <Route path="/dashboard" element={<PrivateRoute />}>
+          <Route path="user" element={<UserDashboard />} />
+          <Route path="user/orders" element={<Orders />} />
+          <Route path="user/profile" element={<Profile />} />
+        </Route>
 
-      {/* Auth Routes */}
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot" element={<Forgotpassword />} />
-
-      {/* Protected Routes for Users */}
-      <Route path="/dashboard" element={<PrivateRoute />}>
-        <Route path="user" element={<UserDashboard />} />
-        <Route path="user/orders" element={<Orders />} />
-        <Route path="user/profile" element={<Profile />} />
-      </Route>
-
-      {/* Admin Dashboard Routes */}
-      <Route path="/dashboard" element={<AdminRoutes />}>
-        <Route path="admin" element={<AdminDashboard />} />
-        <Route path="admin/orders" element={<AdminOrders />} />
-        <Route path="admin/createcategory" element={<CreateCategory />} />
-        <Route path="admin/craousel" element={<CreateCarousel />} />
-        <Route path="admin/createproduct" element={<CreateProduct />} />
-        <Route path="admin/product" element={<Product />} />
-        <Route path="admin/product/:slug" element={<UpdateProduct />} />
-        <Route path="admin/users" element={<Users />} />
-      </Route>
-    </Routes>
+        {/* Admin Dashboard Routes */}
+        <Route path="/dashboard" element={<AdminRoutes />}>
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/orders" element={<AdminOrders />} />
+          <Route path="admin/createcategory" element={<CreateCategory />} />
+          <Route path="admin/craousel" element={<CreateCarousel />} />
+          <Route path="admin/createproduct" element={<CreateProduct />} />
+          <Route path="admin/product" element={<Product />} />
+          <Route path="admin/product/:slug" element={<UpdateProduct />} />
+          <Route path="admin/users" element={<Users />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
