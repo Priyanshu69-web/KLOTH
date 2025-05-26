@@ -435,3 +435,17 @@ export const brainTreePaymentController = async (req, res) => {
     console.log(error);
   }
 };
+
+
+// Controller
+export const searchProductController = async (req, res) => {
+  const keyword = req.params.keyword;
+  const products = await productModel.find({
+    $or: [
+      { name: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } },
+    ],
+  });
+  res.json({ products });
+};
+

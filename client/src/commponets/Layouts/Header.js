@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Badge } from "antd";
 import "../../styles/Header.css";
@@ -7,9 +7,16 @@ import { useAuth } from "../../context/auth";
 import { GiShoppingBag } from 'react-icons/gi';
 import { useCart } from "../../context/cart";
 
-const Header = () => {
+const Header = ({ searchQuery, setSearchQuery }) => {
     const [auth, setAuth] = useAuth();
     const [cart, setCart] = useCart();
+    const navigate = useNavigate();
+
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            navigate("/"); // Navigate to homepage to show results
+        }
+    }
 
     const handleLogout = () => {
         setAuth({
@@ -61,8 +68,9 @@ const Header = () => {
                         <div className="position-relative w-100">
                             <input
                                 type="text"
-                                id="search-input"
+                                value={searchQuery}
                                 placeholder="Search products..."
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="form-control form-control-sm rounded-pill"
                             />
                             <i
@@ -70,6 +78,7 @@ const Header = () => {
                                 className="fas fa-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"
                                 style={{ cursor: "pointer" }}
                             ></i>
+                            <button onClick={handleSearch}>Search</button>
                         </div>
                     </form>
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0 d-flex align-items-center">

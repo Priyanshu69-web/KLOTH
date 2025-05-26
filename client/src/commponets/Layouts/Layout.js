@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 const Layout = ({
   children,
-  title = "E-Commerce App",
+  title = "Kloth",
   description = "Mern stack project",
   keywords = "E-Commerce, React, MongoDb, Node",
   author = "Abhijit",

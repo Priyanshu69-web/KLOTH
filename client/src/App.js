@@ -25,11 +25,22 @@ import AdminOrders from "./pages/Admin/AdminOrders";
 import Product from "./pages/Admin/Products";
 import UpdateProduct from "./pages/Admin/UpdateProduct";
 
+
+
 function App() {
+  
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
+
+    
     <Routes>
+       <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/" element={<Home searchQuery={searchQuery} />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<CartPage />} />

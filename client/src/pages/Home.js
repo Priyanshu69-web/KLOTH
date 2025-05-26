@@ -132,6 +132,24 @@ const HomePage = () => {
     autoplaySpeed: 2000,
   };
 
+  useEffect(() => {
+  if (searchQuery) {
+    searchProducts();
+  } else {
+    getAllProducts();
+  }
+}, [searchQuery]);
+
+const searchProducts = async () => {
+  try {
+    const { data } = await axios.get(`/api/v1/product/search/${searchQuery}`);
+    setProducts(data?.products);
+  } catch (error) {
+    console.log("Search error:", error);
+  }
+};
+
+
   return (
     <Layout title={"All Products - Best Offers"}>
       {carouselItems.length > 0 ? (
