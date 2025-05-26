@@ -176,13 +176,33 @@
     align-items: center;
   }
 
-/* .carousel-slide {
+/* ==================
+   Carousel Section
+   ================== */
+.carousel-slide {
   width: 100%;
-  aspect-ratio: 1850 / 805; 
+  max-height: 60vh;
   overflow: hidden;
   border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: #f9f9f9;
-} */
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .carousel-slide {
+    max-height: 40vh;
+  }
+}
 
 
 
