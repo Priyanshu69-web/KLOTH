@@ -25,6 +25,9 @@ const HomePage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [carouselItems, setCarouselItems] = useState([]);
 
+  const API_URL = "https://kloth.onrender.com";
+
+
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
@@ -136,7 +139,7 @@ const HomePage = () => {
           {carouselItems.map((item, index) => (
             <div key={index} className="carousel-slide">
               <img
-                src={`/api/v1/craousel/image/${item._id}`}
+                src={`${API_URL}/api/v1/craousel/image/${item._id}`}
                 alt="carousel"
                 className="banner-img img-fluid w-100"
               />
@@ -212,7 +215,7 @@ const HomePage = () => {
               >
                 <div className="card h-100 w-100 border-0 shadow-sm rounded-4">
                   <img
-                    src={`/api/v1/product/product-image/${p._id}`}
+                    src={`${API_URL}/api/v1/product/product-image/${p._id}`}
                     className="card-img-top img-fluid rounded-top"
                     alt={p.name}
                     loading="lazy"
