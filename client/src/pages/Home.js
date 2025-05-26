@@ -12,7 +12,7 @@ import "../styles/Homepage.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const HomePage = ({searchQuery}) => {
+const HomePage = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
   const [products, setProducts] = useState([]);
@@ -132,22 +132,6 @@ const HomePage = ({searchQuery}) => {
     autoplaySpeed: 2000,
   };
 
-  useEffect(() => {
-  if (searchQuery) {
-    searchProducts();
-  } else {
-    getAllProducts();
-  }
-}, [searchQuery]);
-
-const searchProducts = async () => {
-  try {
-    const { data } = await axios.get(`/api/v1/product/search/${searchQuery}`);
-    setProducts(data?.products);
-  } catch (error) {
-    console.log("Search error:", error);
-  }
-};
 
 
   return (

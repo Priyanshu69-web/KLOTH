@@ -25,19 +25,18 @@ import Users from "./pages/Admin/Users";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import Product from "./pages/Admin/Products";
 import UpdateProduct from "./pages/Admin/UpdateProduct";
-import Header from "./commponets/Layouts/Header"; // Ensure correct path
+
 
 function App() {
-  const [searchQuery, setSearchQuery] = useState("");
+
 
   return (
     <>
-      {/* Move Header outside of Routes */}
-      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+ 
 
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home searchQuery={searchQuery} />} />
+        <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
         <Route path="/cart" element={<CartPage />} />
