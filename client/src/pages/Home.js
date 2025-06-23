@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../commponets/Prices";
@@ -27,31 +27,25 @@ const HomePage = () => {
 
   const API_URL = "https://kloth.onrender.com";
 
-
-  const getAllCategory = async () => {
+  // Fetch categories and carousel items in parallel
+  const getInitialData = async () => {
     try {
-      const { data } = await axios.get("/api/v1/category/get-category");
-      if (data?.success) {
-        setCategories(data?.category);
+      const [categoryRes, carouselRes] = await Promise.all([
+        axios.get("/api/v1/category/get-category"),
+        axios.get("/api/v1/craousel"),
+      ]);
+      if (categoryRes.data?.success) {
+        setCategories(categoryRes.data?.category);
       }
+      setCarouselItems(carouselRes.data);
     } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getCarouselItems = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/craousel");
-      setCarouselItems(data);
-    } catch (error) {
-      console.log("Error fetching carousel items:", error);
+      console.log("Error fetching initial data:", error);
     }
   };
 
   useEffect(() => {
-    getAllCategory();
+    getInitialData();
     getTotal();
-    getCarouselItems();
   }, []);
 
   const getAllProducts = async () => {
@@ -84,12 +78,23 @@ const HomePage = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      setProducts((prevProducts) => [...prevProducts, ...data?.products]);
       setLoading(false);
-      setProducts([...products, ...data?.products]);
     } catch (error) {
       console.log(error);
       setLoading(false);
     }
+  };
+
+  // Debounce filter changes
+  const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
   };
 
   const handleFilter = (value, id) => {
@@ -102,37 +107,73 @@ const HomePage = () => {
     setChecked(all);
   };
 
+  // Debounced version of filterProduct
+  const filterProduct = useCallback(
+    debounce(async () => {
+      try {
+        const { data } = await axios.post("/api/v1/product/product-filters", {
+          checked,
+          radio,
+        });
+        setProducts(data?.products);
+      } catch (error) {
+        console.log(error);
+      }
+    }, 500),
+    [checked, radio]
+  );
+
   useEffect(() => {
     if (!checked.length && !radio.length) getAllProducts();
   }, [checked.length, radio.length]);
 
   useEffect(() => {
     if (checked.length || radio.length) filterProduct();
-  }, [checked, radio]);
+  }, [checked, radio, filterProduct]);
 
-  const filterProduct = async () => {
-    try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
-        checked,
-        radio,
-      });
-      setProducts(data?.products);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const carouselSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 2000,
-  };
-
-
+  // Memoize product cards rendering
+  const productCards = useMemo(() => {
+    return products?.map((p) => (
+      <div
+        className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center"
+        key={p._id}
+      >
+        <div className="card h-100 w-100 border-0 shadow-sm rounded-4">
+          <img
+            src={`${API_URL}/api/v1/product/product-image/${p._id}`}
+            className="card-img-top img-fluid rounded-top"
+            alt={p.name}
+            loading="lazy"
+          />
+          <div className="card-body d-flex flex-column text-center">
+            <h5 className="card-title text-primary fw-bold">{p.name}</h5>
+            <p className="card-text text-success fw-semibold fs-5">
+              ₹{p.price.toLocaleString("en-IN")}
+            </p>
+            <p className="text-muted small">{p.description.substring(0, 50)}...</p>
+            <div className="mt-auto d-flex flex-column gap-2">
+              <button
+                className="btn btn-outline-info"
+                onClick={() => navigate(`/product/${p.slug}`)}
+              >
+                More Details
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setCart([...cart, p]);
+                  localStorage.setItem("cart", JSON.stringify([...cart, p]));
+                  toast.success("Item Added to cart");
+                }}
+              >
+                ADD TO CART
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ));
+  }, [products, cart, navigate]);
 
   return (
     <Layout title={"All Products - Best Offers"}>
@@ -167,9 +208,8 @@ const HomePage = () => {
         </div>
 
         <div
-          className={`col-md-3 filters p-4 shadow-sm bg-light rounded-4 mb-4 ${
-            showFilters ? "d-block" : "d-none"
-          } d-md-block`}
+          className={`col-md-3 filters p-4 shadow-sm bg-light rounded-4 mb-4 ${showFilters ? "d-block" : "d-none"
+            } d-md-block`}
         >
           <h4 className="text-center text-primary mb-3">Filter By Category</h4>
           <div className="d-flex flex-column">
@@ -210,51 +250,16 @@ const HomePage = () => {
             Discover Our Products
           </h1>
           <div className="row g-4">
-            {products?.map((p) => (
-              <div
-                className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center"
-                key={p._id}
-              >
-                <div className="card h-100 w-100 border-0 shadow-sm rounded-4">
-                  <img
-                    src={`${API_URL}/api/v1/product/product-image/${p._id}`}
-                    className="card-img-top img-fluid rounded-top"
-                    alt={p.name}
-                    loading="lazy"
-                  />
-                  <div className="card-body d-flex flex-column text-center">
-                    <h5 className="card-title text-primary fw-bold">{p.name}</h5>
-                    <p className="card-text text-success fw-semibold fs-5">
-                      ₹{p.price.toLocaleString("en-IN")}
-                    </p>
-                    <p className="text-muted small">
-                      {p.description.substring(0, 50)}...
-                    </p>
-                    <div className="mt-auto d-flex flex-column gap-2">
-                      <button
-                        className="btn btn-outline-info"
-                        onClick={() => navigate(`/product/${p.slug}`)}
-                      >
-                        More Details
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => {
-                          setCart([...cart, p]);
-                          localStorage.setItem(
-                            "cart",
-                            JSON.stringify([...cart, p])
-                          );
-                          toast.success("Item Added to cart");
-                        }}
-                      >
-                        ADD TO CART
-                      </button>
-                    </div>
-                  </div>
+            {loading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center"
+                  key={index}
+                >
+                  <SkeletonCard />
                 </div>
-              </div>
-            ))}
+              ))
+              : productCards}
           </div>
 
           <div className="m-4 p-3 text-center">
