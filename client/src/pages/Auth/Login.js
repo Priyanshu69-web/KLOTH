@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 
 
 import Layout from "../../commponets/Layouts/Layout";
@@ -45,8 +44,6 @@ const Login = () => {
   //Google Login 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const decodedToken = jwtDecode(credentialResponse.credential);
-
       const res = await axios.post("/api/v1/auth/google-login", {
         token: credentialResponse.credential,
       });

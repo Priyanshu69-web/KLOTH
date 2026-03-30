@@ -12,14 +12,21 @@ dotenv.config({path:'./config.env'});
 
 dotenv.config();
 
-//payment gateway
+const getBraintreeGateway = () => {
+  const { BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY, BRAINTREE_PRIVATE_KEY } =
+    process.env;
 
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+  if (!BRAINTREE_MERCHANT_ID || !BRAINTREE_PUBLIC_KEY || !BRAINTREE_PRIVATE_KEY) {
+    return null;
+  }
+
+  return new braintree.BraintreeGateway({
+    environment: braintree.Environment.Sandbox,
+    merchantId: BRAINTREE_MERCHANT_ID,
+    publicKey: BRAINTREE_PUBLIC_KEY,
+    privateKey: BRAINTREE_PRIVATE_KEY,
+  });
+};
 
 //Craousel 
 export const getCarouselItemsController = async (req, res) => {
@@ -47,21 +54,25 @@ export const getCarouselImageController = async (req, res) => {
 
 import formidable from "formidable";
 
+const getUploadedFile = (file) => Array.isArray(file) ? file[0] : file;
+
+const readUploadedFile = (file) => fs.readFileSync(file.filepath || file.path);
+
 export const createCarouselItemController = async (req, res) => {
   const form = new formidable.IncomingForm({ keepExtensions: true });
   form.parse(req, async (err, fields, files) => {
-    console.log("Files received:", files);
     if (err) {
       return res.status(400).json({ error: "Image could not be uploaded" });
     }
     try {
       const newItem = new CarouselItem();
-      if (files.image) {
-        if (files.image.size > 10000000) {
+      const imageFile = getUploadedFile(files.image);
+      if (imageFile) {
+        if (imageFile.size > 1000000) {
           return res.status(400).json({ error: "Image should be less than 1MB" });
         }
-        newItem.image.data = fs.readFileSync(files.image.path);
-        newItem.image.contentType = files.image.type;
+        newItem.image.data = readUploadedFile(imageFile);
+        newItem.image.contentType = imageFile.mimetype || imageFile.type;
       } else {
         return res.status(400).json({ error: "Image is required" });
       }
@@ -83,13 +94,14 @@ export const updateCarouselItemController = async (req, res) => {
     try {
       const { id } = req.params;
       const updatedData = {};
-      if (files.image) {
-        if (files.image.size > 1000000) {
+      const imageFile = getUploadedFile(files.image);
+      if (imageFile) {
+        if (imageFile.size > 1000000) {
           return res.status(400).json({ error: "Image should be less than 1MB" });
         }
         updatedData.image = {};
-        updatedData.image.data = fs.readFileSync(files.image.path);
-        updatedData.image.contentType = files.image.type;
+        updatedData.image.data = readUploadedFile(imageFile);
+        updatedData.image.contentType = imageFile.mimetype || imageFile.type;
       }
       const updatedItem = await CarouselItem.findByIdAndUpdate(
         id,
@@ -390,6 +402,14 @@ export const productCategoryController = async (req, res) => {
 //token
 export const braintreeTokenController = async (req, res) => {
   try {
+    const gateway = getBraintreeGateway();
+    if (!gateway) {
+      return res.status(503).send({
+        success: false,
+        message: "Payments are not configured on the server",
+      });
+    }
+
     gateway.clientToken.generate({}, function (err, response) {
       if (err) {
         res.status(500).send(err);
@@ -405,6 +425,14 @@ export const braintreeTokenController = async (req, res) => {
 //payment
 export const brainTreePaymentController = async (req, res) => {
   try {
+    const gateway = getBraintreeGateway();
+    if (!gateway) {
+      return res.status(503).send({
+        success: false,
+        message: "Payments are not configured on the server",
+      });
+    }
+
     const { nonce, cart } = req.body;
     let total = 0;
     cart.map((i) => {
@@ -439,13 +467,20 @@ export const brainTreePaymentController = async (req, res) => {
 
 // Controller
 export const searchProductController = async (req, res) => {
-  const keyword = req.params.keyword;
-  const products = await productModel.find({
-    $or: [
-      { name: { $regex: keyword, $options: "i" } },
-      { description: { $regex: keyword, $options: "i" } },
-    ],
-  });
-  res.json({ products });
+  try {
+    const keyword = req.params.keyword;
+    const products = await productModel.find({
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { description: { $regex: keyword, $options: "i" } },
+      ],
+    });
+    res.json({ products });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error while searching products",
+    });
+  }
 };
 

@@ -24,7 +24,7 @@ function About() {
                             <li><strong>Easy Returns & Support:</strong> Hassle-free returns and 24/7 customer assistance.</li>
                         </ul>
                         <a
-                            href="#"
+                            href="/"
                             className="btn btn-primary btn-lg px-4 py-2 rounded-3"
                         >
                             Shop Now

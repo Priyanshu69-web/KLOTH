@@ -4,7 +4,7 @@ import { comparePassword, hashPassword } from "./../helper/authHelper.js";
 import { OAuth2Client } from "google-auth-library";
 import JWT from "jsonwebtoken";
 
-const googleClient = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
+const getGoogleClient = () => new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerController = async (req, res) => {
   const { username, email, password, phone, address, answer } = req.body;
@@ -80,7 +80,6 @@ export const loginController = async (req, res) => {
       expiresIn: "7d",
     });
 
-    console.log(token);
     res.status(200).send({
       success: true,
       message: "Login successfully",
@@ -120,6 +119,7 @@ export const testController = (req, res) => {
 export const googleLoginController = async (req, res) => {
   try {
     const { token } = req.body;
+    const googleClient = getGoogleClient();
 
 
     // Verify Google token
@@ -181,13 +181,13 @@ export const forgotPasswordController = async (req, res) => {
   try {
     const { email, answer, newPassword } = req.body;
     if (!email) {
-      res.status(400).send({ message: "Emai is required" });
+      return res.status(400).send({ success: false, message: "Email is required" });
     }
     if (!answer) {
-      res.status(400).send({ message: "answer is required" });
+      return res.status(400).send({ success: false, message: "Answer is required" });
     }
     if (!newPassword) {
-      res.status(400).send({ message: "New Password is required" });
+      return res.status(400).send({ success: false, message: "New password is required" });
     }
     //check
     const user = await usermodel.findOne({ email, answer });
@@ -310,7 +310,7 @@ export const orderStatusController = async (req, res) => {
 //get all users
 export const getAllUsersController = async (req, res) => {
   try {
-    const users = await usermodel.find({});
+    const users = await usermodel.find({}).select("-password -answer");
     res.status(200).send({
       success: true,
       message: "All Users",

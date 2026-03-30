@@ -1,5 +1,10 @@
 {
   "type": "module",
+  "scripts": {
+    "server": "nodemon server/app.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "braintree": "^3.29.0",

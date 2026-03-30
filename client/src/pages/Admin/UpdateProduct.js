@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
+import { buildApiUrl } from "../../utils/api";
 const { Option } = Select;
 
 const UpdateProduct = () => {
@@ -20,7 +21,6 @@ const UpdateProduct = () => {
   const [shipping, setShipping] = useState("");
   const [image, setimage] = useState("");
   const [id, setId] = useState("");
-    const API_URL = "https://kloth.onrender.com";
 
   //get single product
   const getSingleProduct = async () => {
@@ -73,15 +73,16 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       image && productData.append("image", image);
       productData.append("category", category);
-      const { data } = axios.put(
+      productData.append("shipping", shipping);
+      const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
         productData
       );
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
         toast.success("Product Updated Successfully");
         navigate("/dashboard/admin/product");
+      } else {
+        toast.error(data?.message || "Product update failed");
       }
     } catch (error) {
       console.log(error);
@@ -94,9 +95,7 @@ const UpdateProduct = () => {
     try {
       let answer = window.prompt("Are You Sure want to delete this product ? ");
       if (!answer) return;
-      const { data } = await axios.delete(
-        `/api/v1/product/delete-product/${id}`
-      );
+      await axios.delete(`/api/v1/product/delete-product/${id}`);
       toast.success("Product DEleted Succfully");
       navigate("/dashboard/admin/product");
     } catch (error) {
@@ -156,7 +155,7 @@ const UpdateProduct = () => {
                 ) : (
                   <div className="text-center">
                     <img
-                      src={`${API_URL}/api/v1/product/product-image/${id}`}
+                      src={buildApiUrl(`/api/v1/product/product-image/${id}`)}
                       alt="product_image"
                       height={"200px"}
                       className="img img-responsive"
@@ -220,7 +219,7 @@ const UpdateProduct = () => {
                   onChange={(value) => {
                     setShipping(value);
                   }}
-                  value={shipping ? "yes" : "No"}
+                  value={shipping ? "1" : "0"}
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>

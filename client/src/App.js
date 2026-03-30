@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import { useState } from "react";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -25,6 +24,7 @@ import Users from "./pages/Admin/Users";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import Product from "./pages/Admin/Products";
 import UpdateProduct from "./pages/Admin/UpdateProduct";
+import Pagenotfound from "./pages/Pagenotfound";
 
 
 function App() {
@@ -46,6 +46,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot" element={<Forgotpassword />} />
+        <Route path="/forgot-password" element={<Forgotpassword />} />
 
         {/* Protected Routes for Users */}
         <Route path="/dashboard" element={<PrivateRoute />}>
@@ -65,6 +66,8 @@ function App() {
           <Route path="admin/product/:slug" element={<UpdateProduct />} />
           <Route path="admin/users" element={<Users />} />
         </Route>
+
+        <Route path="*" element={<Pagenotfound />} />
       </Routes>
     </>
   );

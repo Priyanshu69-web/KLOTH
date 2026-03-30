@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../commponets/Prices";
@@ -9,18 +9,10 @@ import Layout from "./../commponets/Layouts/Layout";
 import SkeletonCard from "../commponets/Layouts/SkeletonCard";
 import { AiOutlineReload } from "react-icons/ai";
 import Slider from "react-slick";
+import { buildApiUrl } from "../utils/api";
 import "../styles/Homepage.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
-// ✅ Move debounce outside the component
-const debounce = (func, delay) => {
-  let timer;
-  return (...args) => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => func(...args), delay);
-  };
-};
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -34,8 +26,6 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [carouselItems, setCarouselItems] = useState([]);
-  const API_URL = "https://kloth.onrender.com";
-
   const getInitialData = async () => {
     try {
       const [categoryRes, carouselRes] = await Promise.all([
@@ -56,18 +46,6 @@ const HomePage = () => {
     getTotal();
   }, []);
 
-  const getAllProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setProducts(data.products);
-    } catch (error) {
-      toast.error("Error fetching products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getTotal = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/product-count");
@@ -77,20 +55,20 @@ const HomePage = () => {
     }
   };
 
-  const loadMore = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setProducts((prev) => [...prev, ...data.products]);
-    } catch (error) {
-      toast.error("Error loading more products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (page === 1) return;
+    const loadMore = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+        setProducts((prev) => [...prev, ...data.products]);
+      } catch (error) {
+        toast.error("Error loading more products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadMore();
   }, [page]);
 
@@ -98,9 +76,25 @@ const HomePage = () => {
     setChecked((prev) => (value ? [...prev, id] : prev.filter((c) => c !== id)));
   };
 
-  // ✅ Filter products on filter change
-  const filterProduct = useCallback(
-    debounce(async () => {
+  useEffect(() => {
+    if (!checked.length && !radio.length) {
+      const getAllProducts = async () => {
+        try {
+          setLoading(true);
+          const { data } = await axios.get("/api/v1/product/product-list/1");
+          setProducts(data.products || []);
+        } catch (error) {
+          toast.error("Error fetching products");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getAllProducts();
+      return;
+    }
+
+    const timer = setTimeout(async () => {
       try {
         const { data } = await axios.post("/api/v1/product/product-filters", {
           checked,
@@ -110,61 +104,16 @@ const HomePage = () => {
       } catch (error) {
         toast.error("Error applying filters");
       }
-    }, 500),
-    [checked, radio]
-  );
+    }, 500);
 
-  useEffect(() => {
-    if (checked.length || radio.length) filterProduct();
-  }, [checked, radio, filterProduct]);
-
-  useEffect(() => {
-    if (!checked.length && !radio.length) getAllProducts();
-  }, [checked.length, radio.length]);
+    return () => clearTimeout(timer);
+  }, [checked, radio]);
 
   const resetFilters = () => {
     setChecked([]);
     setRadio([]);
     setPage(1);
-    getAllProducts();
   };
-
-  const productCards = useMemo(
-    () =>
-      products.map((p) => (
-        <div className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center" key={p._id}>
-          <div className="card h-100 w-100 border-0 shadow-sm rounded-4">
-            <img
-              src={`${API_URL}/api/v1/product/product-image/${p._id}`}
-              className="card-img-top img-fluid rounded-top"
-              alt={p.name}
-              loading="lazy"
-            />
-            <div className="card-body d-flex flex-column text-center">
-              <h5 className="card-title text-primary fw-bold">{p.name}</h5>
-              <p className="card-text text-success fs-5">₹{p.price.toLocaleString("en-IN")}</p>
-              <p className="text-muted small">{p.description.substring(0, 50)}...</p>
-              <div className="mt-auto d-flex flex-column gap-2">
-                <button className="btn btn-outline-info" onClick={() => navigate(`/product/${p.slug}`)}>
-                  More Details
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setCart([...cart, p]);
-                    localStorage.setItem("cart", JSON.stringify([...cart, p]));
-                    toast.success("Item Added to cart");
-                  }}
-                >
-                  ADD TO CART
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )),
-    [products, cart, navigate, API_URL, setCart]
-  );
 
   const carouselSettings = {
     dots: true,
@@ -183,7 +132,7 @@ const HomePage = () => {
           {carouselItems.map((item, index) => (
             <div key={index} className="carousel-slide">
               <img
-                src={`${API_URL}/api/v1/craousel/image/${item._id}`}
+                src={buildApiUrl(`/api/v1/craousel/image/${item._id}`)}
                 alt="carousel"
                 className="banner-img img-fluid w-100"
               />
@@ -240,7 +189,39 @@ const HomePage = () => {
                   <SkeletonCard />
                 </div>
               ))
-              : productCards}
+              : products.map((p) => (
+                <div className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center" key={p._id}>
+                  <div className="card h-100 w-100 border-0 shadow-sm rounded-4">
+                    <img
+                      src={buildApiUrl(`/api/v1/product/product-image/${p._id}`)}
+                      className="card-img-top img-fluid rounded-top"
+                      alt={p.name}
+                      loading="lazy"
+                    />
+                    <div className="card-body d-flex flex-column text-center">
+                      <h5 className="card-title text-primary fw-bold">{p.name}</h5>
+                      <p className="card-text text-success fs-5">₹{p.price.toLocaleString("en-IN")}</p>
+                      <p className="text-muted small">{p.description.substring(0, 50)}...</p>
+                      <div className="mt-auto d-flex flex-column gap-2">
+                        <button className="btn btn-outline-info" onClick={() => navigate(`/product/${p.slug}`)}>
+                          More Details
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            const updatedCart = [...cart, p];
+                            setCart(updatedCart);
+                            localStorage.setItem("cart", JSON.stringify(updatedCart));
+                            toast.success("Item Added to cart");
+                          }}
+                        >
+                          ADD TO CART
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
 
           {/* Empty state */}

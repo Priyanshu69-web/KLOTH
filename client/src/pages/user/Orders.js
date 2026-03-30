@@ -4,12 +4,11 @@ import Layout from "../../commponets/Layouts/Layout";
 import axios from "axios";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
+import { buildApiUrl } from "../../utils/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [auth] = useAuth();
-    const API_URL = "https://kloth.onrender.com";
-
 
   const getOrders = async () => {
     try {
@@ -69,7 +68,7 @@ const Orders = () => {
                             <div className="row g-0 h-100">
                               <div className="col-md-4 d-flex align-items-center">
                                 <img
-                                  src={`${API_URL}/api/v1/product/product-image/${product._id}`}
+                                  src={buildApiUrl(`/api/v1/product/product-image/${product._id}`)}
                                   className="img-fluid rounded-start"
                                   alt={product.name}
                                 />

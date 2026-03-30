@@ -4,8 +4,20 @@ import userModel from "../models/usermodel.js";
 //Protected Routes token base
 export const requireSignIn = async (req, res, next) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized: Missing token",
+      });
+    }
+
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : authHeader;
+
     const decode = JWT.verify(
-      req.headers.authorization,
+      token,
       process.env.JWT_SECRET
     );
     req.user = decode;

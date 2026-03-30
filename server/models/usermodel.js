@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema({
   address: {
     type: String,
   },
+  answer: {
+    type: String,
+  },
   profilePhoto: {
     type: String,
   },

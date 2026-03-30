@@ -55,7 +55,7 @@ router.put("/profile", requireSignIn, updateProfileController);
 router.get("/orders", requireSignIn, getOrdersController);
 
 //Get All Users
-router.get("/all-users", requireSignIn, getAllUsersController, isAdmin);
+router.get("/all-users", requireSignIn, isAdmin, getAllUsersController);
 
 //all orders
 router.get("/all-orders", requireSignIn, isAdmin, getAllOrdersController);
