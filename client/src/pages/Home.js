@@ -7,9 +7,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../commponets/Layouts/Layout";
 import SkeletonCard from "../commponets/Layouts/SkeletonCard";
+import PageLoader from "../commponets/Feedback/PageLoader";
+import StateMessage from "../commponets/Feedback/StateMessage";
 import { AiOutlineReload } from "react-icons/ai";
 import Slider from "react-slick";
 import { buildApiUrl } from "../utils/api";
+import { getErrorMessage } from "../utils/error";
 import "../styles/Homepage.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -24,8 +27,11 @@ const HomePage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [carouselItems, setCarouselItems] = useState([]);
+  const [pageError, setPageError] = useState("");
   const getInitialData = async () => {
     try {
       const [categoryRes, carouselRes] = await Promise.all([
@@ -37,7 +43,7 @@ const HomePage = () => {
       }
       setCarouselItems(carouselRes.data || []);
     } catch (error) {
-      toast.error("Error loading categories or carousel");
+      toast.error(getErrorMessage(error, "Error loading categories or carousel"));
     }
   };
 
@@ -51,7 +57,7 @@ const HomePage = () => {
       const { data } = await axios.get("/api/v1/product/product-count");
       setTotal(data?.total);
     } catch (error) {
-      toast.error("Error fetching total products count");
+      toast.error(getErrorMessage(error, "Error fetching total products count"));
     }
   };
 
@@ -59,13 +65,13 @@ const HomePage = () => {
     if (page === 1) return;
     const loadMore = async () => {
       try {
-        setLoading(true);
+        setLoadingMore(true);
         const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
         setProducts((prev) => [...prev, ...data.products]);
       } catch (error) {
-        toast.error("Error loading more products");
+        toast.error(getErrorMessage(error, "Error loading more products"));
       } finally {
-        setLoading(false);
+        setLoadingMore(false);
       }
     };
 
@@ -80,13 +86,18 @@ const HomePage = () => {
     if (!checked.length && !radio.length) {
       const getAllProducts = async () => {
         try {
+          setPageError("");
+          setInitialLoading(true);
           setLoading(true);
           const { data } = await axios.get("/api/v1/product/product-list/1");
           setProducts(data.products || []);
         } catch (error) {
-          toast.error("Error fetching products");
+          const message = getErrorMessage(error, "Error fetching products");
+          setPageError(message);
+          toast.error(message);
         } finally {
           setLoading(false);
+          setInitialLoading(false);
         }
       };
 
@@ -96,13 +107,19 @@ const HomePage = () => {
 
     const timer = setTimeout(async () => {
       try {
+        setLoading(true);
+        setPageError("");
         const { data } = await axios.post("/api/v1/product/product-filters", {
           checked,
           radio,
         });
         setProducts(data?.products || []);
       } catch (error) {
-        toast.error("Error applying filters");
+        const message = getErrorMessage(error, "Error applying filters");
+        setPageError(message);
+        toast.error(message);
+      } finally {
+        setLoading(false);
       }
     }, 500);
 
@@ -127,7 +144,9 @@ const HomePage = () => {
 
   return (
     <Layout title="All Products - Best Offers">
-      {carouselItems.length > 0 ? (
+      {initialLoading ? (
+        <PageLoader message="Loading storefront..." />
+      ) : carouselItems.length > 0 ? (
         <Slider {...carouselSettings} className="mb-4">
           {carouselItems.map((item, index) => (
             <div key={index} className="carousel-slide">
@@ -182,8 +201,17 @@ const HomePage = () => {
         {/* Products */}
         <div className="col-md-9">
           <h1 className="text-center mb-4 text-dark fw-bold display-6">Discover Our Products</h1>
+          {pageError ? (
+            <StateMessage
+              title="We could not load products"
+              message={pageError}
+              variant="danger"
+              actionLabel="Try Again"
+              onAction={resetFilters}
+            />
+          ) : null}
           <div className="row g-4">
-            {loading
+            {initialLoading || loading
               ? Array.from({ length: 6 }).map((_, index) => (
                 <div className="col-lg-4 col-md-6 col-sm-12 d-flex justify-content-center" key={index}>
                   <SkeletonCard />
@@ -235,9 +263,9 @@ const HomePage = () => {
               <button
                 className="btn btn-outline-secondary"
                 onClick={() => setPage((prev) => prev + 1)}
-                disabled={loading}
+                disabled={loadingMore}
               >
-                {loading ? "Loading ..." : <>Load More <AiOutlineReload /></>}
+                {loadingMore ? "Loading ..." : <>Load More <AiOutlineReload /></>}
               </button>
             </div>
           )}

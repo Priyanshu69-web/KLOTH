@@ -5,15 +5,22 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import CategoryForm from "../../commponets/Form/CategoryForm";
 import { Modal } from "antd";
+import TableSkeleton from "../../commponets/Feedback/TableSkeleton";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [pageError, setPageError] = useState("");
   //handle Form
   const handleSubmit = async (e) => {      
     e.preventDefault();
+    setSubmitting(true);
     try {
       const { data } = await axios.post("/api/v1/category/create-category", {
         name,
@@ -25,21 +32,27 @@ const CreateCategory = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.log(error);
-      // toast.error("somthing went wrong in input form");
+      toast.error(getErrorMessage(error, "Failed to create category"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   //get all cat
   const getAllCategory = async () => {
+    setLoading(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data?.success) {
         setCategories(data?.category);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      const message = getErrorMessage(error, "Failed to load categories");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +63,7 @@ const CreateCategory = () => {
   //update category
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const { data } = await axios.put(
         `/api/v1/category/update-category/${selected._id}`,
@@ -65,11 +79,14 @@ const CreateCategory = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.log(error);
+      toast.error(getErrorMessage(error, "Failed to update category"));
+    } finally {
+      setSubmitting(false);
     }
   };
   //delete category
   const handleDelete = async (pId) => {
+    setSubmitting(true);
     try {
       const { data } = await axios.delete(
         `/api/v1/category/delete-category/${pId}`
@@ -82,7 +99,9 @@ const CreateCategory = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+      toast.error(getErrorMessage(error, "Failed to delete category"));
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -99,9 +118,23 @@ const CreateCategory = () => {
                 handleSubmit={handleSubmit}
                 value={name}
                 setValue={setName}
+                loading={submitting}
+                buttonLabel="Create Category"
               />
             </div>
+            {pageError ? (
+              <StateMessage
+                title="Unable to load categories"
+                message={pageError}
+                variant="danger"
+                actionLabel="Retry"
+                onAction={getAllCategory}
+              />
+            ) : null}
             <div className="w-75">
+              {loading ? (
+                <TableSkeleton rows={5} columns={2} />
+              ) : (
               <table className="table">
                 <thead>
                   <tr>
@@ -139,6 +172,7 @@ const CreateCategory = () => {
                   ))}
                 </tbody>
               </table>
+              )}
             </div>
             <Modal
               onCancel={() => setVisible(false)}
@@ -149,6 +183,8 @@ const CreateCategory = () => {
                 value={updatedName}
                 setValue={setUpdatedName}
                 handleSubmit={handleUpdate}
+                loading={submitting}
+                buttonLabel="Update Category"
               />
             </Modal>
           </div>

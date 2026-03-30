@@ -5,6 +5,9 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { Select } from "antd";
 import { useNavigate } from "react-router-dom";
+import PageLoader from "../../commponets/Feedback/PageLoader";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -18,18 +21,26 @@ const CreateProduct = () => {
   const [quantity, setQuantity] = useState("");
   const [shipping, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [pageError, setPageError] = useState("");
   
 
   //get all category
   const getAllCategory = async () => {
+    setLoadingCategories(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data?.success) {
         setCategories(data?.category);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      const message = getErrorMessage(error, "Failed to load categories");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setLoadingCategories(false);
     }
   };
 
@@ -40,6 +51,7 @@ const CreateProduct = () => {
   //create product function
   const handleCreate = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const productData = new FormData();
       productData.append("name", name);
@@ -61,8 +73,9 @@ const CreateProduct = () => {
         navigate("/dashboard/admin/product");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("something went wrong");
+      toast.error(getErrorMessage(error, "Failed to create product"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -75,6 +88,16 @@ const CreateProduct = () => {
           </div>
           <div className="col-md-9">
             <h1>Create Product</h1>
+            {pageError ? (
+              <StateMessage
+                title="Unable to load categories"
+                message={pageError}
+                variant="danger"
+                actionLabel="Retry"
+                onAction={getAllCategory}
+              />
+            ) : null}
+            {loadingCategories ? <PageLoader message="Loading categories..." /> : null}
             <div className="m-1 w-75">
               <Select
                 bordered={false}
@@ -100,6 +123,7 @@ const CreateProduct = () => {
                     name="photo"
                     accept="image/*"
                     onChange={(e) => setPhoto(e.target.files[0])}
+                    disabled={submitting}
                     hidden
                   />
                 </label>
@@ -123,6 +147,7 @@ const CreateProduct = () => {
                   placeholder="write a name"
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -132,6 +157,7 @@ const CreateProduct = () => {
                   placeholder="write a description"
                   className="form-control"
                   onChange={(e) => setDescription(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
                <div className="mb-3">
@@ -141,6 +167,7 @@ const CreateProduct = () => {
                   placeholder="Offerings"
                   className="form-control"
                   onChange={(e) => setOfferings(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -150,6 +177,7 @@ const CreateProduct = () => {
                   placeholder="write a Price"
                   className="form-control"
                   onChange={(e) => setPrice(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -159,6 +187,7 @@ const CreateProduct = () => {
                   placeholder="write a quantity"
                   className="form-control"
                   onChange={(e) => setQuantity(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -177,8 +206,8 @@ const CreateProduct = () => {
                 </Select>
               </div>
               <div className="mb-3">
-                <button className="btn btn-primary" onClick={handleCreate}>
-                  CREATE PRODUCT
+                <button className="btn btn-primary" onClick={handleCreate} disabled={submitting || loadingCategories}>
+                  {submitting ? "Creating..." : "CREATE PRODUCT"}
                 </button>
               </div>
             </div>

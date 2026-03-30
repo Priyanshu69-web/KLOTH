@@ -8,11 +8,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
 import { useAuth } from "../../context/auth";
+import { getErrorMessage } from "../../utils/error";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [auth, setAuth] = useAuth();
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,6 +22,7 @@ const Login = () => {
   // Form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const res = await axios.post("/api/v1/auth/login", { email, password });
 
@@ -36,13 +39,15 @@ const Login = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   //Google Login 
   const handleGoogleLogin = async (credentialResponse) => {
+    setSubmitting(true);
     try {
       const res = await axios.post("/api/v1/auth/google-login", {
         token: credentialResponse.credential,
@@ -60,11 +65,11 @@ const Login = () => {
         navigate(location.state || "/");
       } else {
         toast.error(res.data.message);
-
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -101,12 +106,13 @@ const Login = () => {
                 type="button"
                 className="btn forgot-btn"
                 onClick={() => navigate("/forgot-password")}
+                disabled={submitting}
               >
                 Forgot Password
               </button>
             </div>
-            <button type="submit" className="btn mb-3 btn-primary">
-              LOGIN
+            <button type="submit" className="btn mb-3 btn-primary" disabled={submitting}>
+              {submitting ? "Logging in..." : "LOGIN"}
             </button>
             <GoogleLogin
               onSuccess={handleGoogleLogin}

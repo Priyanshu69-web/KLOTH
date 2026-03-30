@@ -6,6 +6,9 @@ import axios from "axios";
 import { Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import { buildApiUrl } from "../../utils/api";
+import PageLoader from "../../commponets/Feedback/PageLoader";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
 const { Option } = Select;
 
 const UpdateProduct = () => {
@@ -21,6 +24,9 @@ const UpdateProduct = () => {
   const [shipping, setShipping] = useState("");
   const [image, setimage] = useState("");
   const [id, setId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [pageError, setPageError] = useState("");
 
   //get single product
   const getSingleProduct = async () => {
@@ -37,7 +43,9 @@ const UpdateProduct = () => {
       setShipping(data.product.shipping);
       setCategory(data.product.category._id);
     } catch (error) {
-      console.log(error);
+      const message = getErrorMessage(error, "Failed to load product details");
+      setPageError(message);
+      toast.error(message);
     }
   };
   useEffect(() => {
@@ -52,18 +60,26 @@ const UpdateProduct = () => {
         setCategories(data?.category);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      const message = getErrorMessage(error, "Failed to load categories");
+      setPageError(message);
+      toast.error(message);
     }
   };
 
   useEffect(() => {
-    getAllCategory();
+    const loadPage = async () => {
+      setLoading(true);
+      setPageError("");
+      await Promise.all([getSingleProduct(), getAllCategory()]);
+      setLoading(false);
+    };
+    loadPage();
   }, []);
 
   //create product function
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const productData = new FormData();
       productData.append("name", name);
@@ -85,8 +101,9 @@ const UpdateProduct = () => {
         toast.error(data?.message || "Product update failed");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("something went wrong");
+      toast.error(getErrorMessage(error, "Failed to update product"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -95,12 +112,14 @@ const UpdateProduct = () => {
     try {
       let answer = window.prompt("Are You Sure want to delete this product ? ");
       if (!answer) return;
+      setSubmitting(true);
       await axios.delete(`/api/v1/product/delete-product/${id}`);
       toast.success("Product DEleted Succfully");
       navigate("/dashboard/admin/product");
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error(getErrorMessage(error, "Failed to delete product"));
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -112,6 +131,14 @@ const UpdateProduct = () => {
           </div>
           <div className="col-md-9">
             <h1>Update Product</h1>
+            {pageError ? (
+              <StateMessage
+                title="Unable to load product"
+                message={pageError}
+                variant="danger"
+              />
+            ) : null}
+            {loading ? <PageLoader message="Loading product..." /> : null}
             <div className="m-1 w-75">
               <Select
                 bordered={false}
@@ -138,6 +165,7 @@ const UpdateProduct = () => {
                     name="image"
                     accept="image/*"
                     onChange={(e) => setimage(e.target.files[0])}
+                    disabled={submitting}
                     hidden
                   />
                 </label>
@@ -170,6 +198,7 @@ const UpdateProduct = () => {
                   placeholder="write a name"
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -179,6 +208,7 @@ const UpdateProduct = () => {
                   placeholder="write a description"
                   className="form-control"
                   onChange={(e) => setDescription(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
                <div className="mb-3">
@@ -188,6 +218,7 @@ const UpdateProduct = () => {
                   placeholder="Offerings"
                   className="form-control"
                   onChange={(e) => setOfferings(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
 
@@ -198,6 +229,7 @@ const UpdateProduct = () => {
                   placeholder="write a Price"
                   className="form-control"
                   onChange={(e) => setPrice(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -207,6 +239,7 @@ const UpdateProduct = () => {
                   placeholder="write a quantity"
                   className="form-control"
                   onChange={(e) => setQuantity(e.target.value)}
+                  disabled={submitting}
                 />
               </div>
               <div className="mb-3">
@@ -226,13 +259,13 @@ const UpdateProduct = () => {
                 </Select>
               </div>
               <div className="mb-3">
-                <button className="btn btn-primary" onClick={handleUpdate}>
-                  UPDATE PRODUCT
+                <button className="btn btn-primary" onClick={handleUpdate} disabled={submitting || loading}>
+                  {submitting ? "Updating..." : "UPDATE PRODUCT"}
                 </button>
               </div>
               <div className="mb-3">
-                <button className="btn btn-danger" onClick={handleDelete}>
-                  DELETE PRODUCT
+                <button className="btn btn-danger" onClick={handleDelete} disabled={submitting || loading}>
+                  {submitting ? "Working..." : "DELETE PRODUCT"}
                 </button>
               </div>
             </div>

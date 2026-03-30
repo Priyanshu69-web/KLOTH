@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
 import Layout from "../../commponets/Layouts/Layout";
+import { getErrorMessage } from "../../utils/error";
 
 
 const Register = () => {
@@ -16,18 +17,19 @@ const Register = () => {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [answer, setAnswer] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   // form function
   const handleSubmit = async (e) => {
+    e.preventDefault();
     // Validate email format
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
       toast.error("Please enter a valid email address.");
       return;
     }
-
-    e.preventDefault();
+    setSubmitting(true);
     try {
       // Ensure all fields are filled out
       if (!username || !email || !password || !phone || !address || !answer) {
@@ -55,8 +57,9 @@ const Register = () => {
       }
     }
     catch (error) {
-      // console.log(error.response.data); 
-      toast.error(error.response?.data?.message || "Something went wrong");
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -134,8 +137,8 @@ const Register = () => {
               required
             />
           </div>
-          <button type="submit" className="btn btn-primary">
-            REGISTER
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? "Creating Account..." : "REGISTER"}
           </button>
         </form>
       </div>

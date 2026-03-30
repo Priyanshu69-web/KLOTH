@@ -2,48 +2,67 @@ import React, { useEffect, useState } from "react";
 import Layout from "../commponets/Layouts/Layout";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { useCart } from "../context/cart"; // ✅ Add this
-import toast from "react-hot-toast"; // ✅ Add this
+import { useCart } from "../context/cart";
+import toast from "react-hot-toast";
+import ProductDetailSkeleton from "../commponets/Feedback/ProductDetailSkeleton";
+import StateMessage from "../commponets/Feedback/StateMessage";
+import { buildApiUrl } from "../utils/api";
+import { getErrorMessage } from "../utils/error";
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
-  const [image, setImage] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [cart, setCart] = useCart(); // ✅ Cart context
+  const [cart, setCart] = useCart();
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
   const availableSizes = ["S", "M", "L", "XL"];
 
   useEffect(() => {
     const fetchProductAndImage = async () => {
+      setLoading(true);
+      setPageError("");
       try {
         const response = await axios.get(`/api/v1/product/get-product/${slug}`);
         const productData = response.data.product;
         setProduct(productData);
-
-        if (productData && productData._id) {
-          const imageResponse = await axios.get(
-            `/api/v1/product/product-image/${productData._id}`,
-            {
-              responseType: "blob",
-            }
-          );
-          const imageUrl = URL.createObjectURL(imageResponse.data);
-          setImage(imageUrl);
-        }
       } catch (error) {
-        console.error("Error fetching product data or image:", error);
+        const message = getErrorMessage(error, "Error fetching product details");
+        setPageError(message);
+        toast.error(message);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProductAndImage();
   }, [slug]);
 
-  if (!product) return <div className="text-center mt-5">Loading...</div>;
+  if (loading) {
+    return (
+      <Layout title="Loading Product">
+        <ProductDetailSkeleton />
+      </Layout>
+    );
+  }
+
+  if (pageError || !product) {
+    return (
+      <Layout title="Product Unavailable">
+        <div className="container py-5">
+          <StateMessage
+            title="Product unavailable"
+            message={pageError || "We could not load this product right now."}
+            variant="danger"
+          />
+        </div>
+      </Layout>
+    );
+  }
 
   const rating = product.rating || 4.3;
   const stock = product.quantity > 0 ? "In Stock" : "Out of Stock";
   const deliveryEstimate = "3 - 5 business days";
 
-  // ✅ Handle Add to Cart
   const handleAddToCart = () => {
     if (!selectedSize) {
       toast.error("Please select a size before adding to cart");
@@ -63,7 +82,7 @@ const ProductDetailPage = () => {
           <div className="col-md-6">
             <div className="card shadow-sm border-0">
               <img
-                src={image}
+                src={buildApiUrl(`/api/v1/product/product-image/${product._id}`)}
                 alt={product.name}
                 className="img-fluid rounded"
                 style={{ maxHeight: "500px", objectFit: "cover" }}
@@ -99,7 +118,6 @@ const ProductDetailPage = () => {
                 <span className="text-muted">Delivery in {deliveryEstimate}</span>
               </p>
 
-              {/* Size Selector */}
               <div className="mb-3">
                 <h6 className="mb-2">Select Size:</h6>
                 <div className="d-flex flex-wrap gap-2">
@@ -123,7 +141,6 @@ const ProductDetailPage = () => {
                 )}
               </div>
 
-              {/* ✅ Add to Cart Button */}
               <button
                 className="btn btn-primary mt-3 w-100 py-2"
                 onClick={handleAddToCart}

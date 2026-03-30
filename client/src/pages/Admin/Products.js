@@ -5,17 +5,27 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { buildApiUrl } from "../../utils/api";
+import SkeletonCard from "../../commponets/Layouts/SkeletonCard";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
 
   //getall products
   const getAllProducts = async () => {
+    setLoading(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/product/get-product");
       setProducts(data.products);
     } catch (error) {
-      console.log(error);
-      toast.error("Someething Went Wrong");
+      const message = getErrorMessage(error, "Failed to load products");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,8 +41,23 @@ const Products = () => {
         </div>
         <div className="col-md-9 ">
           <h1 className="text-center">All Products List</h1>
+          {pageError ? (
+            <StateMessage
+              title="Could not load products"
+              message={pageError}
+              variant="danger"
+              actionLabel="Retry"
+              onAction={getAllProducts}
+            />
+          ) : null}
           <div className="d-flex flex-wrap">
-            {products?.map((p) => (
+            {loading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                <div className="m-2" style={{ width: "18rem" }} key={index}>
+                  <SkeletonCard />
+                </div>
+              ))
+              : products?.map((p) => (
               <Link
                 key={p._id}
                 to={`/dashboard/admin/product/${p.slug}`}

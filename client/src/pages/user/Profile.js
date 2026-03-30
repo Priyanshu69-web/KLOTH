@@ -4,6 +4,9 @@ import UserMenu from "../../commponets/Layouts/UserMenu";
 import { useAuth } from "../../context/auth";
 import toast from "react-hot-toast";
 import axios from "axios";
+import PageLoader from "../../commponets/Feedback/PageLoader";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
 
 const Profile = () => {
   //context
@@ -14,19 +17,30 @@ const Profile = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [formReady, setFormReady] = useState(false);
+  const [pageError, setPageError] = useState("");
 
   //get user data
   useEffect(() => {
-    const { email, username, phone, address } = auth?.user;
-    setName(username);
-    setPhone(phone);
-    setEmail(email);
-    setAddress(address);
+    if (!auth?.user) {
+      setFormReady(false);
+      return;
+    }
+
+    const { email, username, phone, address } = auth.user;
+    setName(username || "");
+    setPhone(phone || "");
+    setEmail(email || "");
+    setAddress(address || "");
+    setFormReady(true);
+    setPageError("");
   }, [auth?.user]);
 
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         username,
@@ -46,8 +60,11 @@ const Profile = () => {
         toast.success("Profile Updated Successfully");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      const message = getErrorMessage(error);
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -58,7 +75,17 @@ const Profile = () => {
             <UserMenu />
           </div>
           <div className="col-md-8">
+            {!formReady ? (
+              <PageLoader message="Loading your profile..." />
+            ) : (
             <div className="form-container" style={{ marginTop: "-40px" }}>
+              {pageError ? (
+                <StateMessage
+                  title="Profile update failed"
+                  message={pageError}
+                  variant="danger"
+                />
+              ) : null}
               <form onSubmit={handleSubmit}>
                 <h4 className="title">USER PROFILE</h4>
                 <div className="mb-3">
@@ -114,11 +141,12 @@ const Profile = () => {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary">
-                  UPDATE
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? "Updating..." : "UPDATE"}
                 </button>
               </form>
             </div>
+            )}
           </div>
         </div>
       </div>

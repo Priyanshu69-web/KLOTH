@@ -3,20 +3,31 @@ import Layout from "../../commponets/Layouts/Layout";
 import AdminMenu from "../../commponets/Layouts/AdminMenu";
 import axios from "axios";
 import toast from "react-hot-toast";
+import TableSkeleton from "../../commponets/Feedback/TableSkeleton";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { buildApiUrl } from "../../utils/api";
+import { getErrorMessage } from "../../utils/error";
 
 const CreateCarousel = () => {
   const [carouselItems, setCarouselItems] = useState([]);
   const [image, setImage] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [pageError, setPageError] = useState("");
 
   const fetchCarouselItems = async () => {
+    setFetching(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/craousel");
       setCarouselItems(data);
     } catch (error) {
-      console.error("Error fetching carousel items:", error);
-      toast.error("Failed to fetch carousel items");
+      const message = getErrorMessage(error, "Failed to fetch carousel items");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -56,8 +67,7 @@ const CreateCarousel = () => {
       resetForm();
       fetchCarouselItems();
     } catch (error) {
-      console.error("Error saving carousel item:", error);
-      toast.error("Failed to save carousel item");
+      toast.error(getErrorMessage(error, "Failed to save carousel item"));
     }
     setLoading(false);
   };
@@ -77,8 +87,7 @@ const CreateCarousel = () => {
       toast.success("Carousel item deleted");
       fetchCarouselItems();
     } catch (error) {
-      console.error("Error deleting carousel item:", error);
-      toast.error("Failed to delete carousel item");
+      toast.error(getErrorMessage(error, "Failed to delete carousel item"));
     }
     setLoading(false);
   };
@@ -92,6 +101,15 @@ const CreateCarousel = () => {
           </div>
           <div className="col-md-9">
             <h1>Manage Carousel Items</h1>
+            {pageError ? (
+              <StateMessage
+                title="Unable to load carousel items"
+                message={pageError}
+                variant="danger"
+                actionLabel="Retry"
+                onAction={fetchCarouselItems}
+              />
+            ) : null}
             <form onSubmit={handleSubmit} className="mb-4" encType="multipart/form-data">
               <div className="mb-3">
                 <label className="form-label">Image *</label>
@@ -120,7 +138,9 @@ const CreateCarousel = () => {
             </form>
 
             <h2>Existing Carousel Items</h2>
-            {carouselItems.length === 0 ? (
+            {fetching ? (
+              <TableSkeleton rows={4} columns={2} />
+            ) : carouselItems.length === 0 ? (
               <p>No carousel items found.</p>
             ) : (
               <table className="table table-bordered">
@@ -135,7 +155,7 @@ const CreateCarousel = () => {
                     <tr key={item._id}>
                       <td>
                         <img
-                          src={`/api/v1/craousel/image/${item._id}`}
+                          src={buildApiUrl(`/api/v1/craousel/image/${item._id}`)}
                           alt="carousel"
                           style={{ width: "150px", height: "auto" }}
                         />

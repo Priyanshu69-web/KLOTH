@@ -5,17 +5,29 @@ import axios from "axios";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
 import { buildApiUrl } from "../../utils/api";
+import TableSkeleton from "../../commponets/Feedback/TableSkeleton";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { getErrorMessage } from "../../utils/error";
+import toast from "react-hot-toast";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
   const [auth] = useAuth();
 
   const getOrders = async () => {
+    setLoading(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/auth/orders");
       setOrders(data);
     } catch (error) {
-      console.log(error);
+      const message = getErrorMessage(error, "Failed to load your orders");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,7 +44,18 @@ const Orders = () => {
           </div>
           <div className="col-md-9">
             <h2 className="text-center mb-4 text-primary">Your Orders</h2>
-            {orders.length === 0 ? (
+            {pageError ? (
+              <StateMessage
+                title="Unable to load orders"
+                message={pageError}
+                variant="danger"
+                actionLabel="Retry"
+                onAction={getOrders}
+              />
+            ) : null}
+            {loading ? (
+              <TableSkeleton rows={4} columns={5} />
+            ) : orders.length === 0 ? (
               <div className="alert alert-info text-center">No orders found.</div>
             ) : (
               orders.map((order, index) => (

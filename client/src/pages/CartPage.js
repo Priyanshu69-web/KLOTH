@@ -7,7 +7,9 @@ import DropIn from "braintree-web-drop-in-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { buildApiUrl } from "../utils/api";
-// import '../styles/CartStyle.css';
+import StateMessage from "../commponets/Feedback/StateMessage";
+import PageLoader from "../commponets/Feedback/PageLoader";
+import { getErrorMessage } from "../utils/error";
 
 
 const CartPage = () => {
@@ -16,6 +18,8 @@ const CartPage = () => {
   const [clientToken, setClientToken] = useState("");
   const [instance, setInstance] = useState("");
   const [loading, setLoading] = useState(false);
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [pageError, setPageError] = useState("");
   const navigate = useNavigate();
 
   //total price
@@ -48,11 +52,17 @@ const CartPage = () => {
 
   //get payment gateway token
   const getToken = async () => {
+    setTokenLoading(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/product/braintree/token");
       setClientToken(data?.clientToken);
     } catch (error) {
-      console.log(error);
+      const message = getErrorMessage(error, "Failed to load payment options");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setTokenLoading(false);
     }
   };
   useEffect(() => {
@@ -74,7 +84,8 @@ const CartPage = () => {
       navigate("/dashboard/user/orders");
       toast.success("Payment Completed Successfully ");
     } catch (error) {
-      console.log(error);
+      toast.error(getErrorMessage(error, "Payment failed. Please try again."));
+    } finally {
       setLoading(false);
     }
   };
@@ -131,6 +142,15 @@ const CartPage = () => {
             <div className="col-md-4 mx-auto cart-summary ">
               <h2>Cart Summary</h2>
               <p>Total | Checkout | Payment</p>
+              {pageError ? (
+                <StateMessage
+                  title="Payment setup failed"
+                  message={pageError}
+                  variant="danger"
+                  actionLabel="Retry"
+                  onAction={getToken}
+                />
+              ) : null}
               <hr />
               <h4>Total : {totalPrice()} </h4>
               {auth?.user?.address ? (
@@ -170,6 +190,7 @@ const CartPage = () => {
                 </div>
               )}
               <div className="mt-2">
+                {tokenLoading ? <PageLoader message="Loading payment options..." /> : null}
                 {!clientToken || !auth?.token || !cart?.length ? (
                   ""
                 ) : (

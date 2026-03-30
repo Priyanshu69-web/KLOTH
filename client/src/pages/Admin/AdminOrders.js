@@ -5,6 +5,11 @@ import Layout from "../../commponets/Layouts/Layout";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
 import { Select } from "antd";
+import toast from "react-hot-toast";
+import TableSkeleton from "../../commponets/Feedback/TableSkeleton";
+import StateMessage from "../../commponets/Feedback/StateMessage";
+import { buildApiUrl } from "../../utils/api";
+import { getErrorMessage } from "../../utils/error";
 const { Option } = Select;
 
 const AdminOrders = () => {
@@ -17,13 +22,22 @@ const AdminOrders = () => {
   ]);
 
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState("");
+  const [pageError, setPageError] = useState("");
   const [auth] = useAuth();
   const getOrders = async () => {
+    setLoading(true);
+    setPageError("");
     try {
       const { data } = await axios.get("/api/v1/auth/all-orders");
       setOrders(data);
     } catch (error) {
-      console.log(error);
+      const message = getErrorMessage(error, "Failed to load orders");
+      setPageError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,13 +46,16 @@ const AdminOrders = () => {
   }, [auth?.token]);
 
   const handleChange = async (orderId, value) => {
+    setStatusUpdating(orderId);
     try {
       await axios.put(`/api/v1/auth/order-status/${orderId}`, {
         status: value,
       });
       getOrders();
     } catch (error) {
-      console.log(error);
+      toast.error(getErrorMessage(error, "Failed to update order status"));
+    } finally {
+      setStatusUpdating("");
     }
   };
   return (
@@ -49,6 +66,16 @@ const AdminOrders = () => {
         </div>
         <div className="col-md-9">
           <h1 className="text-center">All Orders</h1>
+          {pageError ? (
+            <StateMessage
+              title="Unable to load orders"
+              message={pageError}
+              variant="danger"
+              actionLabel="Retry"
+              onAction={getOrders}
+            />
+          ) : null}
+          {loading ? <TableSkeleton rows={5} columns={6} /> : null}
           {orders?.map((o, i) => {
             return (
               <div className="border shadow" key={o._id}>
@@ -71,6 +98,7 @@ const AdminOrders = () => {
                           bordered={false}
                           onChange={(value) => handleChange(o._id, value)}
                           defaultValue={o?.status}
+                          disabled={statusUpdating === o._id}
                         >
                           {status.map((s, i) => (
                             <Option key={i} value={s}>
@@ -91,7 +119,7 @@ const AdminOrders = () => {
                     <div className="row mb-2 p-3 card flex-row" key={p._id}>
                       <div className="col-md-4">
                         <img
-                          src={`/api/v1/product/product-image/${p._id}`}
+                          src={buildApiUrl(`/api/v1/product/product-image/${p._id}`)}
                           className="card-img-top"
                           alt={p.name}
                           width="100px"

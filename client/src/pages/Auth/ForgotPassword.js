@@ -4,17 +4,20 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import "../../styles/AuthStyles.css";
+import { getErrorMessage } from "../../utils/error";
 
 const ForgotPasssword = () => {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [answer, setAnswer] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const res = await axios.post("/api/v1/auth/forgot-password", {
         email,
@@ -29,8 +32,9 @@ const ForgotPasssword = () => {
         toast.error(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
   };
   return (
@@ -73,8 +77,8 @@ const ForgotPasssword = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary">
-            RESET
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? "Resetting..." : "RESET"}
           </button>
         </form>
       </div>
