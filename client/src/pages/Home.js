@@ -7,7 +7,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../commponets/Layouts/Layout";
 import SkeletonCard from "../commponets/Layouts/SkeletonCard";
-import PageLoader from "../commponets/Feedback/PageLoader";
 import StateMessage from "../commponets/Feedback/StateMessage";
 import { AiOutlineReload } from "react-icons/ai";
 import Slider from "react-slick";
@@ -32,6 +31,7 @@ const HomePage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [carouselItems, setCarouselItems] = useState([]);
   const [pageError, setPageError] = useState("");
+  const [catalogueReady, setCatalogueReady] = useState(false);
   const getInitialData = async () => {
     try {
       const [categoryRes, carouselRes] = await Promise.all([
@@ -43,7 +43,11 @@ const HomePage = () => {
       }
       setCarouselItems(carouselRes.data || []);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Error loading categories or carousel"));
+      const message = getErrorMessage(error, "We could not load the storefront details right now.");
+      setPageError((currentError) => currentError || message);
+      toast.error(message);
+    } finally {
+      setCatalogueReady(true);
     }
   };
 
@@ -130,6 +134,7 @@ const HomePage = () => {
     setChecked([]);
     setRadio([]);
     setPage(1);
+    setPageError("");
   };
 
   const carouselSettings = {
@@ -144,9 +149,7 @@ const HomePage = () => {
 
   return (
     <Layout title="All Products - Best Offers">
-      {initialLoading ? (
-        <PageLoader message="Loading storefront..." />
-      ) : carouselItems.length > 0 ? (
+      {carouselItems.length > 0 ? (
         <Slider {...carouselSettings} className="mb-4">
           {carouselItems.map((item, index) => (
             <div key={index} className="carousel-slide">
@@ -203,11 +206,11 @@ const HomePage = () => {
           <h1 className="text-center mb-4 text-dark fw-bold display-6">Discover Our Products</h1>
           {pageError ? (
             <StateMessage
-              title="We could not load products"
+              title="We could not load the storefront"
               message={pageError}
               variant="danger"
-              actionLabel="Try Again"
-              onAction={resetFilters}
+              actionLabel="Reload products"
+              onAction={() => window.location.reload()}
             />
           ) : null}
           <div className="row g-4">
@@ -253,8 +256,14 @@ const HomePage = () => {
           </div>
 
           {/* Empty state */}
-          {!loading && products.length === 0 && (
-            <div className="text-center p-4 text-muted">No products found</div>
+          {!loading && !initialLoading && products.length === 0 && !pageError && catalogueReady && (
+            <StateMessage
+              title="No products matched your filters"
+              message="Try clearing a category or price filter to explore more items."
+              variant="secondary"
+              actionLabel="Reset filters"
+              onAction={resetFilters}
+            />
           )}
 
           {/* Load More */}

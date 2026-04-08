@@ -15,6 +15,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: flex-start;
   }
   
   .home-page h1 {
@@ -27,17 +28,18 @@
     Product Cards
     ================== */
   .home-page .card {
-    background-color: rgba(128, 128, 128, 0.1);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     width: 19rem;
-    border: none;
-    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
     overflow: hidden;
     transition: all 0.3s ease-in-out;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
   }
   
   .home-page .card:hover {
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-5px);
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
+    transform: translateY(-6px);
   }
   
   .home-page .card-name-price {
@@ -110,10 +112,11 @@
     Filters Section
     ================== */
   .filters {
-    background: #f9f9f9;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
   }
   
   .filters h4 {
@@ -183,18 +186,19 @@
   width: 100%;
   max-height: 60vh;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f9f9f9;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  border: 1px solid #e5e7eb;
 }
 
 .carousel-slide img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 24px;
 }
 
 /* Mobile Responsiveness */

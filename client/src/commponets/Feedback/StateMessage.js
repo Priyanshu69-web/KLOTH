@@ -11,10 +11,10 @@ const StateMessage = ({
 
   return (
     <div className={className} role="alert">
-      {title ? <h5 className="mb-2">{title}</h5> : null}
-      <p className="mb-0">{message}</p>
+      {title ? <h5 className="mb-2 fw-semibold">{title}</h5> : null}
+      <p className="mb-0 state-card__message">{message}</p>
       {actionLabel && onAction ? (
-        <button className="btn btn-outline-dark btn-sm mt-3" onClick={onAction}>
+        <button className="btn btn-outline-dark btn-sm mt-3 px-3" onClick={onAction}>
           {actionLabel}
         </button>
       ) : null}

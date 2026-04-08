@@ -84,6 +84,9 @@
 .state-card {
   border-radius: 16px;
   padding: 1.25rem;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
 .state-card--centered {
@@ -100,4 +103,38 @@
   border: 1px solid #e9ecef;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   border-radius: 20px;
+}
+
+.state-card__message {
+  color: #475569;
+  line-height: 1.6;
+}
+
+.loader-copy {
+  width: min(100%, 220px);
+  margin-bottom: 1rem;
+}
+
+.loader-shimmer {
+  background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 999px;
+}
+
+.loader-shimmer--hero {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  margin-bottom: 1rem;
+}
+
+.loader-shimmer--line {
+  height: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.loader-shimmer--title {
+  width: 75%;
+  height: 14px;
 }
